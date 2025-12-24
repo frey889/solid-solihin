@@ -4,14 +4,17 @@ namespace Monarch\SolidSolihin\Support;
 
 class Env
 {
-    public static function get(string $key, mixed $default = null): mixed
+    public static function get(string $key, $default = null)
     {
-        $value = getenv($key);
+        return $_ENV[$key]
+            ?? getenv($key)
+            ?? $default;
+    }
 
-        if ($value === false || $value === '') {
-            return $default;
-        }
-
-        return $value;
+    public static function bool(string $key, bool $default = false): bool
+    {
+        $val = self::get($key);
+        if ($val === null) return $default;
+        return in_array(strtolower($val), ['1','true','yes','on'], true);
     }
 }

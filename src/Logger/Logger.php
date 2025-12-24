@@ -2,67 +2,60 @@
 
 namespace Monarch\SolidSolihin\Logger;
 
-use Throwable;
-use Monarch\SolidSolihin\Client\AsyncHttpClient;
+use Monarch\SolidSolihin\Transport\SupabaseTransport;
 use Monarch\SolidSolihin\Support\Env;
+use Monarch\SolidSolihin\Support\Debug;
 
 class Logger
 {
-    protected static function basePayload(): array
-    {
+    protected static function basePayload(
+        string $level,
+        string $message,
+        array $context = []
+    ): array {
         return [
             'project_code' => Env::get('SOLID_SOLIHIN_PROJECT_CODE'),
             'project_key'  => Env::get('SOLID_SOLIHIN_PROJECT_KEY'),
-            'environment'  => Env::get('SOLID_SOLIHIN_ENV', 'production'),
-            'ip_address'   => $_SERVER['REMOTE_ADDR'] ?? null,
-            'user_agent'   => $_SERVER['HTTP_USER_AGENT'] ?? null,
-            'request_id'   => $_SERVER['HTTP_X_REQUEST_ID'] ?? null,
-            'timestamp'    => date('c')
+            'environment'  => Env::get('CI_ENVIRONMENT', 'production'),
+            'level'        => $level,
+            'message'      => $message,
+            'context'      => $context,
+            'timestamp'    => date('c'),
         ];
     }
 
-    protected static function endpoint(): ?string
+    protected static function dispatch(array $payload): void
     {
-        return Env::get('SOLID_SOLIHIN_ENDPOINT');
-    }
+        if (empty($payload['project_code']) || empty($payload['project_key'])) {
+            Debug::log('Missing project credentials', $payload);
+            return;
+        }
 
-    public static function error(Throwable $e, array $context = []): void
-    {
-        AsyncHttpClient::post(
-            self::endpoint(),
-            array_merge(self::basePayload(), [
-                'level'     => 'error',
-                'message'   => $e->getMessage(),
-                'exception' => get_class($e),
-                'file'      => $e->getFile(),
-                'line'      => $e->getLine(),
-                'trace'     => $e->getTraceAsString(),
-                'context'   => $context
-            ])
-        );
-    }
-
-    public static function warning(string $message, array $context = []): void
-    {
-        AsyncHttpClient::post(
-            self::endpoint(),
-            array_merge(self::basePayload(), [
-                'level'   => 'warning',
-                'message' => $message,
-                'context' => $context
-            ])
-        );
+        // async-ish: fire and forget
+        register_shutdown_function(function () use ($payload) {
+            SupabaseTransport::send($payload);
+        });
     }
 
     public static function info(string $message, array $context = []): void
     {
-        AsyncHttpClient::post(
-            self::endpoint(),
-            array_merge(self::basePayload(), [
-                'level'   => 'info',
-                'message' => $message,
-                'context' => $context
-            ])
-        );
+        self::dispatch(self::basePayload('info', $message, $context));
+    }
+
+    public static function error(string $message, array $context = []): void
+    {
+        self::dispatch(self::basePayload('error', $message, $context));
+    }
+
+    public static function exception(\Throwable $e, array $context = []): void
+    {
+        self::dispatch(array_merge(
+            self::basePayload('exception', $e->getMessage(), $context),
+            [
+                'file'  => $e->getFile(),
+                'line'  => $e->getLine(),
+                'trace' => $e->getTraceAsString(),
+            ]
+        ));
     }
 }
