@@ -1,26 +1,22 @@
-## Cara user install:
-```{
+### Tambahkan pada composer.json
+{
   "repositories": [
     {
       "type": "vcs",
-      "url": "git@github.com:frey889/solid-solihin.git"
+      "url": "https://github.com/frey889/solid-solihin.git"
     }
   ]
-}```
-
+}
 
 ### Lalu:
 
-```composer require monarch/solid-solihin```
+composer require monarch/solid-solihin```
 
-atau 
-```use Monarch\SolidSolihin\SolidSolihin;
-use Monarch\SolidSolihin\Logger\Logger;
+### atau 
+composer config repositories.monarch vcs https://github.com/frey889/solid-solihin.git
+composer require monarch/solid-solihin
 
-SolidSolihin::registerGlobalHandlers();
 
-Logger::error(new Exception('Something broke'));
-```
 
 ### .env 
 SOLID_SOLIHIN_ENDPOINT
