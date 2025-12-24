@@ -1,0 +1,14 @@
+{
+  "name": "monarch/solid-solihin",
+  "description": "Async PHP logging SDK by Monarch",
+  "type": "library",
+  "license": "MIT",
+  "autoload": {
+    "psr-4": {
+      "Monarch\\SolidSolihin\\": "src/"
+    }
+  },
+  "require": {
+    "php": ">=8.0"
+  }
+}
