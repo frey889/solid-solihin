@@ -1,14 +1,17 @@
 {
   "name": "monarch/solid-solihin",
-  "description": "Async PHP logging SDK by Monarch Inti Teknologi",
+  "description": "Exception / Error logger CI4 & Laravel compatible - Monarch Inti Teknologi",
   "type": "library",
-  "license": "MIT",
   "autoload": {
     "psr-4": {
       "Monarch\\SolidSolihin\\": "src/"
     }
   },
   "require": {
-    "php": ">=8.0"
-  }
+    "php": ">=8.0",
+    "ext-curl": "*",
+    "ext-json": "*"
+  },
+  "minimum-stability": "dev",
+  "prefer-stable": true
 }
